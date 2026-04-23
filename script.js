@@ -114,6 +114,9 @@ function loginSuccess(user) {
   renderTasks();
   updateSendBtn();
   setTimeout(() => textInput?.focus(), 100);
+  // Voice greeting
+  const firstName = user.name.split(' ')[0];
+  speakGreeting(`Hey ${firstName}! I'm Wubet, your AI assistant. What can I help you with today?`);
 }
 
 function loadUserData() {
@@ -330,10 +333,24 @@ let cameraStream    = null;
 let facingMode      = 'environment'; // back camera default
 let attachedImage   = null;          // base64 data URL
 
-// Open camera modal
+// Open camera — mobile gets native camera, desktop gets modal
 cameraBtn?.addEventListener('click', () => {
-  cameraModal.classList.remove('hidden');
-  startCamera();
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    // On mobile, use native camera via file input (most reliable)
+    imgFileInput.setAttribute('capture', 'environment');
+    imgFileInput.click();
+  } else {
+    // On desktop, show camera modal
+    if (navigator.mediaDevices?.getUserMedia) {
+      cameraModal.classList.remove('hidden');
+      startCamera();
+    } else {
+      // Fallback to file picker
+      imgFileInput.removeAttribute('capture');
+      imgFileInput.click();
+    }
+  }
 });
 
 // Close camera modal
@@ -418,17 +435,16 @@ function updateSendBtn() {
 // FREE AI — Puter (no key needed)
 // ════════════════════════════════════════
 
-async function callAI(userMessage) {
-  // Build conversation history for context
+async function callAI(userMessage, imageDataUrl) {
   const msgs = [{ role: 'system', content: SYS }];
   chatHistory.slice(-8).forEach(m => msgs.push({ role: m.role, content: m.text }));
 
-  // If image attached, send as vision message
-  if (attachedImage) {
+  if (imageDataUrl) {
+    // Vision message with image
     msgs.push({
       role: 'user',
       content: [
-        { type: 'image_url', image_url: { url: attachedImage } },
+        { type: 'image_url', image_url: { url: imageDataUrl } },
         { type: 'text', text: userMessage || 'What do you see in this image? Describe it in detail.' }
       ]
     });
@@ -488,11 +504,14 @@ function formatMd(text) {
 // MESSAGE RENDERING
 // ════════════════════════════════════════
 
-function appendUser(text) {
+function appendUser(text, imageDataUrl) {
   welcomeScreen.style.display = 'none';
   const d = document.createElement('div');
   d.className = 'msg-user';
-  d.innerHTML = `<div class="msg-user-bubble">${escapeHtml(text)}</div>`;
+  const imgHtml = imageDataUrl
+    ? `<img class="msg-image" src="${imageDataUrl}" alt="attached image" />`
+    : '';
+  d.innerHTML = `<div class="msg-user-bubble">${imgHtml}${text ? escapeHtml(text) : ''}</div>`;
   messages.appendChild(d); scrollBottom();
 }
 
@@ -518,6 +537,7 @@ function createAIBubble(badge, isError = false) {
       <div class="ai-actions" id="aa-${id}" style="display:none">
         <button class="ai-action-btn" onclick="copyMsg(this,${id})"><i class="fa-regular fa-copy"></i> Copy</button>
         <button class="ai-action-btn" onclick="saveLib(this,${id})"><i class="fa-regular fa-bookmark"></i> Save</button>
+        <button class="ai-action-btn" id="voiceReadBtn" onclick="readAloud(this,${id})" title="Read aloud"><i class="fa-solid fa-volume-high"></i></button>
         <button class="ai-action-btn" onclick="likeMsg(this)"><i class="fa-regular fa-thumbs-up"></i> Helpful</button>
         <button class="ai-action-btn" onclick="dislikeMsg(this)"><i class="fa-regular fa-thumbs-down"></i></button>
       </div>
@@ -580,20 +600,30 @@ window.dislikeMsg = btn => { btn.innerHTML = '<i class="fa-solid fa-thumbs-down"
 
 async function sendMessage() {
   const question = textInput.value.trim();
-  if (!question || isTyping) return;
+  if ((!question && !attachedImage) || isTyping) return;
 
   isTyping = true;
-  textInput.value = ''; autoResize(); updateSendBtn();
-  appendUser(question);
-  addToRecent(question);
+  const imageToSend = attachedImage;
+  const label = question || 'Analyze this image';
+
+  // Clear input + image
+  textInput.value = ''; autoResize();
+  attachedImage = null;
+  imgPreview.src = '';
+  imgPreviewWrap.classList.add('hidden');
+  updateSendBtn();
+
+  // Show user message (with image if attached)
+  appendUser(label, imageToSend);
+  addToRecent(label);
   showTyping();
   setStatus('loading');
 
   try {
-    const answer = await callAI(question);
+    const answer = await callAI(question, imageToSend);
     const id = createAIBubble('Free AI ✦');
     finalizeAI(id, answer);
-    chatHistory.push({ role: 'user', text: question });
+    chatHistory.push({ role: 'user', text: label });
     chatHistory.push({ role: 'assistant', text: answer });
     setStatus('ready');
   } catch (err) {
@@ -710,6 +740,74 @@ function addTask() {
 }
 addTaskBtn?.addEventListener('click', addTask);
 taskInput?.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+// ════════════════════════════════════════
+// VOICE AI ASSISTANT
+// ════════════════════════════════════════
+
+let isSpeaking = false;
+
+function speakGreeting(text) {
+  if (!window.speechSynthesis) return;
+  // Small delay so page is fully rendered
+  setTimeout(() => {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 1.05;
+    utt.pitch = 1.1;
+    utt.volume = 1;
+    // Pick a natural voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v =>
+      /en.*US|en.*GB/i.test(v.lang) && /female|zira|samantha|karen|moira/i.test(v.name)
+    ) || voices.find(v => /en/i.test(v.lang)) || voices[0];
+    if (preferred) utt.voice = preferred;
+    utt.onstart = () => { isSpeaking = true; updateVoiceBtnState(true); };
+    utt.onend = utt.onerror = () => { isSpeaking = false; updateVoiceBtnState(false); };
+    window.speechSynthesis.speak(utt);
+  }, 800);
+}
+
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  // Strip markdown for cleaner speech
+  const clean = text
+    .replace(/```[\s\S]*?```/g, 'code block')
+    .replace(/`[^`]+`/g, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/#{1,3}\s/g, '')
+    .replace(/[-•]\s/g, '')
+    .replace(/\n+/g, '. ')
+    .trim();
+  speakGreeting(clean);
+}
+
+function updateVoiceBtnState(speaking) {
+  const btn = document.getElementById('voiceReadBtn');
+  if (!btn) return;
+  btn.classList.toggle('speaking', speaking);
+  btn.title = speaking ? 'Stop speaking' : 'Read aloud';
+  btn.querySelector('i').className = speaking ? 'fa-solid fa-stop' : 'fa-solid fa-volume-high';
+}
+
+// Stop speech
+window.stopSpeech = () => {
+  window.speechSynthesis?.cancel();
+  isSpeaking = false;
+  updateVoiceBtnState(false);
+};
+
+// Read AI response aloud
+window.readAloud = (btn, id) => {
+  if (isSpeaking) { window.stopSpeech(); return; }
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (!el) return;
+  speakText(el.dataset.text || '');
+};
+
+// Voices load async on some browsers
+window.speechSynthesis?.addEventListener('voiceschanged', () => {});
 
 // ════════════════════════════════════════
 // TOAST
