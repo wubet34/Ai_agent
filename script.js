@@ -1,8 +1,7 @@
 // ═══════════════════════════════════════════════════
-// WUBET COPILOT — Free AI (Pollinations) + Auth + Profile
+// WUBET COPILOT — Puter AI (free, no key) + Auth + Profile
 // ═══════════════════════════════════════════════════
 
-// ── Puter.js free AI (no key, no signup needed) ──
 const SYS = 'You are Wubet Copilot, a helpful AI assistant specializing in Computer Science, programming, software engineering, and tech careers. Be concise, accurate, and use markdown formatting (bold, lists, code blocks) where helpful. Keep responses focused and practical.';
 
 // ── App state ──
@@ -311,24 +310,136 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 } else if (micBtn) { micBtn.style.opacity = '0.4'; micBtn.title = 'Voice not supported'; }
 
 // ════════════════════════════════════════
-// FREE AI — Pollinations (no key needed)
+// CAMERA
+// ════════════════════════════════════════
+
+const cameraBtn     = document.getElementById('cameraBtn');
+const cameraModal   = document.getElementById('cameraModal');
+const cameraClose   = document.getElementById('cameraClose');
+const cameraSnap    = document.getElementById('cameraSnap');
+const cameraFlip    = document.getElementById('cameraFlip');
+const cameraUpload  = document.getElementById('cameraUpload');
+const cameraVideo   = document.getElementById('cameraVideo');
+const cameraCanvas  = document.getElementById('cameraCanvas');
+const imgFileInput  = document.getElementById('imgFileInput');
+const imgPreviewWrap= document.getElementById('imgPreviewWrap');
+const imgPreview    = document.getElementById('imgPreview');
+const imgRemoveBtn  = document.getElementById('imgRemoveBtn');
+
+let cameraStream    = null;
+let facingMode      = 'environment'; // back camera default
+let attachedImage   = null;          // base64 data URL
+
+// Open camera modal
+cameraBtn?.addEventListener('click', () => {
+  cameraModal.classList.remove('hidden');
+  startCamera();
+});
+
+// Close camera modal
+cameraClose?.addEventListener('click', stopCamera);
+cameraModal?.addEventListener('click', e => { if (e.target === cameraModal) stopCamera(); });
+
+async function startCamera() {
+  try {
+    if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    cameraVideo.srcObject = cameraStream;
+  } catch (err) {
+    stopCamera();
+    // Fallback to file upload if camera not available
+    imgFileInput.click();
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  cameraModal.classList.add('hidden');
+}
+
+// Flip camera
+cameraFlip?.addEventListener('click', () => {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  startCamera();
+});
+
+// Take snapshot
+cameraSnap?.addEventListener('click', () => {
+  const w = cameraVideo.videoWidth;
+  const h = cameraVideo.videoHeight;
+  cameraCanvas.width = w;
+  cameraCanvas.height = h;
+  cameraCanvas.getContext('2d').drawImage(cameraVideo, 0, 0, w, h);
+  const dataUrl = cameraCanvas.toDataURL('image/jpeg', 0.85);
+  setAttachedImage(dataUrl);
+  stopCamera();
+});
+
+// Upload from gallery
+cameraUpload?.addEventListener('click', () => {
+  stopCamera();
+  imgFileInput.click();
+});
+
+// File input change
+imgFileInput?.addEventListener('change', e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => setAttachedImage(ev.target.result);
+  reader.readAsDataURL(file);
+  imgFileInput.value = '';
+});
+
+function setAttachedImage(dataUrl) {
+  attachedImage = dataUrl;
+  imgPreview.src = dataUrl;
+  imgPreviewWrap.classList.remove('hidden');
+  updateSendBtn();
+}
+
+// Remove attached image
+imgRemoveBtn?.addEventListener('click', () => {
+  attachedImage = null;
+  imgPreview.src = '';
+  imgPreviewWrap.classList.add('hidden');
+  updateSendBtn();
+});
+
+// Override updateSendBtn to also enable when image attached
+function updateSendBtn() {
+  sendBtn.disabled = (!textInput?.value.trim() && !attachedImage) || isTyping;
+}
+
+// ════════════════════════════════════════
+// FREE AI — Puter (no key needed)
 // ════════════════════════════════════════
 
 async function callAI(userMessage) {
-  // Build messages with conversation context
+  // Build conversation history for context
   const msgs = [{ role: 'system', content: SYS }];
   chatHistory.slice(-8).forEach(m => msgs.push({ role: m.role, content: m.text }));
-  msgs.push({ role: 'user', content: userMessage });
 
-  // puter.ai.chat — free, no API key, powered by GPT-4o-mini
+  // If image attached, send as vision message
+  if (attachedImage) {
+    msgs.push({
+      role: 'user',
+      content: [
+        { type: 'image_url', image_url: { url: attachedImage } },
+        { type: 'text', text: userMessage || 'What do you see in this image? Describe it in detail.' }
+      ]
+    });
+  } else {
+    msgs.push({ role: 'user', content: userMessage });
+  }
+
   const resp = await puter.ai.chat(msgs, { model: 'gpt-4o-mini' });
-
-  // Response is either a string or an object with .message.content
-  const text = typeof resp === 'string'
-    ? resp
-    : resp?.message?.content || resp?.content || String(resp);
-
-  if (!text || !text.trim()) throw new Error('Empty response. Please try again.');
+  const text = typeof resp === 'string' ? resp
+    : resp?.message?.content ?? resp?.content ?? String(resp);
+  if (!text?.trim()) throw new Error('Empty response. Please try again.');
   return text.trim();
 }
 
@@ -480,7 +591,7 @@ async function sendMessage() {
 
   try {
     const answer = await callAI(question);
-    const id = createAIBubble('GPT-4o-mini ✦');
+    const id = createAIBubble('Free AI ✦');
     finalizeAI(id, answer);
     chatHistory.push({ role: 'user', text: question });
     chatHistory.push({ role: 'assistant', text: answer });

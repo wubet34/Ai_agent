@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Puter.js: free AI, no API key needed. Users sign in with their free Puter account once. -->
   <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
@@ -158,17 +159,30 @@
         <div class="chat-input-wrapper">
           <div class="chat-box">
             <textarea id="textInput" placeholder="Message Wubet Copilot…" rows="1"></textarea>
+
+            <!-- Image preview (shown when photo is attached) -->
+            <div class="img-preview-wrap hidden" id="imgPreviewWrap">
+              <img id="imgPreview" src="" alt="attached" />
+              <button class="img-remove-btn" id="imgRemoveBtn" title="Remove image"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
             <div class="input-actions">
               <div class="input-left">
-                <div class="ai-badge-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> GPT-4o-mini</div>
+                <button class="action-btn" id="cameraBtn" title="Take photo or upload image">
+                  <i class="fa-solid fa-camera"></i>
+                </button>
+                <div class="ai-badge-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> Free AI</div>
               </div>
               <div class="input-right">
                 <button class="action-btn" id="micBtn"><i class="fa-solid fa-microphone"></i></button>
                 <button class="send-btn" id="sendBtn" disabled><i class="fa-solid fa-arrow-up"></i></button>
               </div>
             </div>
+
+            <!-- Hidden file input for image upload -->
+            <input type="file" id="imgFileInput" accept="image/*" capture="environment" style="display:none" />
           </div>
-          <p class="disclaimer">Wubet Copilot · Powered by Puter AI (GPT-4o-mini) · Free, no key needed · Responses may be inaccurate.</p>
+          <p class="disclaimer">Wubet Copilot · Free AI · No key needed · Responses may be inaccurate.</p>
         </div>
       </div>
 
@@ -312,6 +326,25 @@
     </div><!-- end content-wrapper -->
   </main>
 </div><!-- end appScreen -->
+
+<!-- Camera modal -->
+<div class="camera-modal hidden" id="cameraModal">
+  <div class="camera-card">
+    <div class="camera-header">
+      <span><i class="fa-solid fa-camera"></i> Camera</span>
+      <button id="cameraClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="camera-body">
+      <video id="cameraVideo" autoplay playsinline></video>
+      <canvas id="cameraCanvas" style="display:none"></canvas>
+    </div>
+    <div class="camera-footer">
+      <button class="cam-btn secondary" id="cameraFlip" title="Flip camera"><i class="fa-solid fa-rotate"></i></button>
+      <button class="cam-btn primary" id="cameraSnap"><i class="fa-solid fa-circle"></i></button>
+      <button class="cam-btn secondary" id="cameraUpload" title="Upload from gallery"><i class="fa-solid fa-image"></i></button>
+    </div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
