@@ -333,25 +333,69 @@ let cameraStream    = null;
 let facingMode      = 'environment'; // back camera default
 let attachedImage   = null;          // base64 data URL
 
-// Open camera — mobile gets native camera, desktop gets modal
+// Open camera — show action sheet on mobile, modal on desktop
 cameraBtn?.addEventListener('click', () => {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if (isMobile) {
-    // On mobile, use native camera via file input (most reliable)
-    imgFileInput.setAttribute('capture', 'environment');
-    imgFileInput.click();
+    showCameraSheet();
   } else {
-    // On desktop, show camera modal
     if (navigator.mediaDevices?.getUserMedia) {
       cameraModal.classList.remove('hidden');
       startCamera();
     } else {
-      // Fallback to file picker
       imgFileInput.removeAttribute('capture');
       imgFileInput.click();
     }
   }
 });
+
+function showCameraSheet() {
+  // Remove any existing sheet
+  document.getElementById('camSheet')?.remove();
+  const sheet = document.createElement('div');
+  sheet.id = 'camSheet';
+  sheet.style.cssText = `
+    position:fixed;bottom:0;left:0;right:0;z-index:300;
+    background:var(--surface);border-top:1px solid var(--border);
+    border-radius:20px 20px 0 0;padding:16px;
+    display:flex;flex-direction:column;gap:10px;
+    animation:slideUp .25s ease;
+  `;
+  sheet.innerHTML = `
+    <div style="width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 8px;"></div>
+    <button id="sheetCamera" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-family:inherit;cursor:pointer;">
+      <i class="fa-solid fa-camera" style="color:var(--accent);font-size:20px;width:24px;text-align:center;"></i> Take Photo
+    </button>
+    <button id="sheetGallery" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-family:inherit;cursor:pointer;">
+      <i class="fa-solid fa-image" style="color:var(--accent);font-size:20px;width:24px;text-align:center;"></i> Choose from Gallery
+    </button>
+    <button id="sheetCancel" style="padding:14px;background:transparent;border:none;color:var(--text-muted);font-size:14px;font-family:inherit;cursor:pointer;">Cancel</button>
+  `;
+  document.body.appendChild(sheet);
+
+  // Backdrop
+  const backdrop = document.createElement('div');
+  backdrop.id = 'camBackdrop';
+  backdrop.style.cssText = 'position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.5);';
+  document.body.appendChild(backdrop);
+
+  const close = () => { sheet.remove(); backdrop.remove(); };
+
+  document.getElementById('sheetCamera').onclick = () => {
+    close();
+    imgFileInput.setAttribute('capture', 'environment');
+    imgFileInput.accept = 'image/*';
+    imgFileInput.click();
+  };
+  document.getElementById('sheetGallery').onclick = () => {
+    close();
+    imgFileInput.removeAttribute('capture');
+    imgFileInput.accept = 'image/*';
+    imgFileInput.click();
+  };
+  document.getElementById('sheetCancel').onclick = close;
+  backdrop.onclick = close;
+}
 
 // Close camera modal
 cameraClose?.addEventListener('click', stopCamera);
@@ -606,10 +650,17 @@ async function sendMessage() {
   const imageToSend = attachedImage;
   const label = question || 'Analyze this image';
 
+  // Animate image flying up then clear
+  if (imageToSend && imgPreviewWrap) {
+    imgPreviewWrap.classList.add('sending');
+    await new Promise(r => setTimeout(r, 300));
+  }
+
   // Clear input + image
   textInput.value = ''; autoResize();
   attachedImage = null;
   imgPreview.src = '';
+  imgPreviewWrap.classList.remove('sending');
   imgPreviewWrap.classList.add('hidden');
   updateSendBtn();
 
@@ -759,8 +810,11 @@ function speakGreeting(text) {
     // Pick a natural voice if available
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v =>
-      /en.*US|en.*GB/i.test(v.lang) && /female|zira|samantha|karen|moira/i.test(v.name)
-    ) || voices.find(v => /en/i.test(v.lang)) || voices[0];
+      /en.*US|en.*GB/i.test(v.lang) && /david|mark|daniel|alex|fred|james|ryan|guy|male/i.test(v.name)
+    ) || voices.find(v => /en/i.test(v.lang) && v.name.toLowerCase().includes('male'))
+      || voices.find(v => /en/i.test(v.lang) && !/female|zira|samantha|karen|moira|victoria|fiona/i.test(v.name))
+      || voices.find(v => /en/i.test(v.lang))
+      || voices[0];
     if (preferred) utt.voice = preferred;
     utt.onstart = () => { isSpeaking = true; updateVoiceBtnState(true); };
     utt.onend = utt.onerror = () => { isSpeaking = false; updateVoiceBtnState(false); };

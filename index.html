@@ -157,14 +157,14 @@
           <div class="messages" id="messages"></div>
         </article>
         <div class="chat-input-wrapper">
+          <!-- Image preview sits ABOVE the chat box -->
+          <div class="img-preview-wrap hidden" id="imgPreviewWrap">
+            <img id="imgPreview" src="" alt="attached" />
+            <button class="img-remove-btn" id="imgRemoveBtn" title="Remove image"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
           <div class="chat-box">
             <textarea id="textInput" placeholder="Message Wubet Copilot…" rows="1"></textarea>
-
-            <!-- Image preview (shown when photo is attached) -->
-            <div class="img-preview-wrap hidden" id="imgPreviewWrap">
-              <img id="imgPreview" src="" alt="attached" />
-              <button class="img-remove-btn" id="imgRemoveBtn" title="Remove image"><i class="fa-solid fa-xmark"></i></button>
-            </div>
 
             <div class="input-actions">
               <div class="input-left">
