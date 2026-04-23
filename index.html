@@ -1,100 +1,318 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Copilot</title>
-    <link rel="stylesheet" href="style.css" />
-    <!-- font awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
-  </head>
-  <body>
-    <main>
-      <nav>
-        <div class="close-sidebar">
-            
-        <h1>Wubet Copilot</h1>
-          <!-- <span></span> -->
-          <!-- <i id="toggle" class="fa-solid fa-table-columns"></i> -->
-        </div>
-        <div class="window">
-          <i class="fa-solid fa-window-minimize"></i>
-          <i class="fa-solid fa-window-maximize"></i>
-          <i class="fa-solid fa-xmark"></i>
-        </div>
-      </nav>
-      
-            <aside>
-  <ul>
-    <li><i class="fa-solid fa-pen-to-square"></i> <a href="" id="show">New Chat</a></li>
-    <li><i class="fa-solid fa-book"></i> <a href="" id="show">Library</a></li>
-    <li><i class="fa-solid fa-list-check"></i> <a href="" id="show">Tasks</a></li>
-    <hr style="padding: 10px; border: none; border-top: 1px solid var(--text);" />
-    <li><i class="fa-solid fa-compass"></i> <a href="" id="show">Discover</a></li>
-    <li><i class="fa-solid fa-image"></i> <a href="" id="show">Imagine</a></li>
-    <li><i class="fa-solid fa-flask"></i> <a href="" id="show">Labs</a></li>
-  </ul>
-</aside>
-        
-      <article>
-  <div class="date">
-    <p>Today</p>
-    <span></span>
-  </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wubet Copilot</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
 
-  <div class="message-send">
-    <div class="message">
-      <p id="question"></p>
+<!-- ═══════════ AUTH SCREEN ═══════════ -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo"><i class="fa-solid fa-robot"></i></div>
+    <h1 class="auth-title">Wubet Copilot</h1>
+    <p class="auth-sub">Your AI-powered CS learning assistant</p>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin">Sign In</button>
+      <button class="auth-tab" id="tabRegister">Sign Up</button>
     </div>
+
+    <!-- Login Form -->
+    <form class="auth-form active" id="loginForm" autocomplete="off">
+      <div class="auth-field">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="loginEmail" placeholder="Email address" required />
+      </div>
+      <div class="auth-field">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="loginPassword" placeholder="Password" required />
+      </div>
+      <p class="auth-error" id="loginError"></p>
+      <button type="submit" class="auth-submit">Sign In <i class="fa-solid fa-arrow-right"></i></button>
+      <p class="auth-demo">Demo: <span onclick="demoLogin()">use demo account</span></p>
+    </form>
+
+    <!-- Register Form -->
+    <form class="auth-form" id="registerForm" autocomplete="off">
+      <div class="auth-field">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="regName" placeholder="Full name" required />
+      </div>
+      <div class="auth-field">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="regEmail" placeholder="Email address" required />
+      </div>
+      <div class="auth-field">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="regPassword" placeholder="Password (min 6 chars)" required minlength="6" />
+      </div>
+      <div class="auth-field">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <select id="regRole">
+          <option value="CS Student">CS Student</option>
+          <option value="Software Engineer">Software Engineer</option>
+          <option value="Data Scientist">Data Scientist</option>
+          <option value="Web Developer">Web Developer</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <p class="auth-error" id="registerError"></p>
+      <button type="submit" class="auth-submit">Create Account <i class="fa-solid fa-arrow-right"></i></button>
+    </form>
   </div>
+</div>
 
-  <div class="response">
-    <p id="answer">
-     
-    </p>
-  </div>
+<!-- ═══════════ APP ═══════════ -->
+<div id="appScreen" class="app-screen hidden">
+  <div class="overlay" id="overlay"></div>
 
-
-  <div class="chat-box">
-    <div class="box">
-      <input type="text" id="text" placeholder="Message Copilot" />
-
-      <div class="icons">
-        <!-- LEFT SIDE -->
-        <div class="left-icons">
-          <!-- PLUS ICON -->
-          <span class="plus">
-            <i class="fa-solid fa-plus"></i>
-          </span>
-
-          <!-- MODE MENU -->
-          
+  <main>
+    <!-- ── SIDEBAR ── -->
+    <aside id="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <div class="brand-icon"><i class="fa-solid fa-robot"></i></div>
+          <span class="brand-name">Wubet Copilot</span>
         </div>
+        <button class="close-btn" id="closeSidebar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
 
-        <!-- RIGHT SIDE -->
-        <div class="send-icon">
-          <!-- MIC / VOICE -->
-          <span class="active">
-            <i class="fa-solid fa-microphone"></i>
-          </span>
+      <button class="new-chat-btn" id="newChatBtn">
+        <i class="fa-solid fa-pen-to-square"></i><span>New Chat</span>
+      </button>
 
-          <!-- SEND -->
-          <span >
-            <i id="send" class="fa-solid fa-paper-plane"></i>
-          </span>
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item active" data-section="chat"><i class="fa-solid fa-message"></i><span>Chat</span></li>
+          <li class="nav-item" data-section="library"><i class="fa-solid fa-book"></i><span>Library</span></li>
+          <li class="nav-item" data-section="tasks"><i class="fa-solid fa-list-check"></i><span>Tasks</span></li>
+        </ul>
+        <div class="nav-divider"></div>
+        <ul class="nav-list">
+          <li class="nav-item" data-section="discover"><i class="fa-solid fa-compass"></i><span>Discover</span></li>
+          <li class="nav-item" data-section="imagine"><i class="fa-solid fa-image"></i><span>Imagine</span></li>
+          <li class="nav-item" data-section="labs"><i class="fa-solid fa-flask"></i><span>Labs</span></li>
+        </ul>
+      </nav>
+
+      <div class="history-section" id="recentSection">
+        <div class="history-label-row">
+          <p class="history-label">Recent</p>
+          <button class="clear-history-btn" id="clearHistoryBtn" title="Clear"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+        <ul class="history-list" id="historyList">
+          <li class="history-empty"><i class="fa-regular fa-comment-dots"></i><span>No conversations yet</span></li>
+        </ul>
+      </div>
+
+      <!-- User profile footer -->
+      <div class="sidebar-footer" id="sidebarFooter">
+        <div class="user-avatar-sm" id="sidebarAvatar">W</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebarName">User</span>
+          <span class="user-role" id="sidebarRole">CS Student</span>
+        </div>
+        <button class="icon-btn" data-section="profile" title="Profile"><i class="fa-solid fa-ellipsis"></i></button>
+      </div>
+    </aside>
+
+    <!-- ── CONTENT ── -->
+    <div class="content-wrapper">
+
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-title" id="topbarTitle">Wubet Copilot</span>
+        <div class="topbar-actions">
+          <div class="ai-status" id="aiStatus">
+            <span class="status-dot"></span><span class="status-label">AI Ready</span>
+          </div>
+          <button class="icon-btn" data-section="profile" title="Profile" id="profileBtn">
+            <div class="user-avatar-sm topbar-avatar" id="topbarAvatar">W</div>
+          </button>
+        </div>
+      </header>
+
+      <!-- ── CHAT PANEL ── -->
+      <div class="panel active" id="panel-chat">
+        <article id="chatArea">
+          <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-logo"><i class="fa-solid fa-robot"></i></div>
+            <h1 class="welcome-title" id="welcomeTitle">How can I help you today?</h1>
+            <p class="welcome-sub">Free AI · No API key needed · Ask anything about CS, programming, or your career.</p>
+            <div class="suggestion-grid">
+              <button class="suggestion-card" data-q="What is a data structure?"><i class="fa-solid fa-database"></i><span>Data Structures</span></button>
+              <button class="suggestion-card" data-q="How to prepare for coding interviews?"><i class="fa-solid fa-code"></i><span>Interview Prep</span></button>
+              <button class="suggestion-card" data-q="What is machine learning?"><i class="fa-solid fa-brain"></i><span>Machine Learning</span></button>
+              <button class="suggestion-card" data-q="What projects should CS students build?"><i class="fa-solid fa-rocket"></i><span>Project Ideas</span></button>
+            </div>
+          </div>
+          <div class="messages" id="messages"></div>
+        </article>
+        <div class="chat-input-wrapper">
+          <div class="chat-box">
+            <textarea id="textInput" placeholder="Message Wubet Copilot…" rows="1"></textarea>
+            <div class="input-actions">
+              <div class="input-left">
+                <div class="ai-badge-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> GPT-4o-mini</div>
+              </div>
+              <div class="input-right">
+                <button class="action-btn" id="micBtn"><i class="fa-solid fa-microphone"></i></button>
+                <button class="send-btn" id="sendBtn" disabled><i class="fa-solid fa-arrow-up"></i></button>
+              </div>
+            </div>
+          </div>
+          <p class="disclaimer">Wubet Copilot · Powered by Puter AI (GPT-4o-mini) · Free, no key needed · Responses may be inaccurate.</p>
         </div>
       </div>
-    </div>
-  </div>
-</article>
-    </main>
 
-    <script src="script.js"></script>
-  </body>
+      <!-- ── LIBRARY PANEL ── -->
+      <div class="panel" id="panel-library">
+        <div class="inner-panel">
+          <div class="panel-header"><i class="fa-solid fa-book"></i><h2>Library</h2><p>Your saved conversations and answers</p></div>
+          <div class="library-empty" id="libraryEmpty">
+            <i class="fa-regular fa-bookmark"></i><p>Nothing saved yet</p>
+            <span>Click the bookmark icon on any answer to save it here.</span>
+          </div>
+          <ul class="library-list" id="libraryList"></ul>
+        </div>
+      </div>
+
+      <!-- ── TASKS PANEL ── -->
+      <div class="panel" id="panel-tasks">
+        <div class="inner-panel">
+          <div class="panel-header"><i class="fa-solid fa-list-check"></i><h2>Tasks</h2><p>Track your CS learning goals</p></div>
+          <div class="task-input-row">
+            <input type="text" id="taskInput" placeholder="Add a new task…" />
+            <button id="addTaskBtn"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <ul class="task-list" id="taskList"></ul>
+          <p class="task-empty" id="taskEmpty"><i class="fa-regular fa-circle-check"></i> No tasks yet. Add one above!</p>
+        </div>
+      </div>
+
+      <!-- ── DISCOVER PANEL ── -->
+      <div class="panel" id="panel-discover">
+        <div class="inner-panel">
+          <div class="panel-header"><i class="fa-solid fa-compass"></i><h2>Discover</h2><p>Explore CS topics and resources</p></div>
+          <div class="discover-grid">
+            <div class="discover-card" data-q="Explain supervised vs unsupervised learning with examples"><i class="fa-solid fa-brain"></i><h3>Machine Learning</h3><p>Supervised vs unsupervised, neural networks, model training</p></div>
+            <div class="discover-card" data-q="What are the most important data structures every developer should know?"><i class="fa-solid fa-sitemap"></i><h3>Data Structures</h3><p>Arrays, trees, graphs, hash maps and when to use them</p></div>
+            <div class="discover-card" data-q="What is system design and how do I learn it?"><i class="fa-solid fa-server"></i><h3>System Design</h3><p>Scalability, databases, caching, load balancing</p></div>
+            <div class="discover-card" data-q="What are the best web development frameworks in 2025?"><i class="fa-solid fa-globe"></i><h3>Web Development</h3><p>React, Next.js, Node.js, databases and deployment</p></div>
+            <div class="discover-card" data-q="How does cybersecurity work and what should I learn?"><i class="fa-solid fa-shield-halved"></i><h3>Cybersecurity</h3><p>Encryption, vulnerabilities, ethical hacking basics</p></div>
+            <div class="discover-card" data-q="What is cloud computing and how do I get started with AWS?"><i class="fa-solid fa-cloud"></i><h3>Cloud & DevOps</h3><p>AWS, Docker, Kubernetes, CI/CD pipelines</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── IMAGINE PANEL ── -->
+      <div class="panel" id="panel-imagine">
+        <div class="inner-panel">
+          <div class="panel-header"><i class="fa-solid fa-image"></i><h2>Imagine</h2><p>Generate code, diagrams and creative CS content</p></div>
+          <p class="imagine-label">Try a prompt:</p>
+          <div class="imagine-grid">
+            <button class="imagine-btn" data-q="Write a Python function to implement binary search with comments"><i class="fa-solid fa-code"></i> Binary Search in Python</button>
+            <button class="imagine-btn" data-q="Write a JavaScript function to flatten a nested array"><i class="fa-brands fa-js"></i> Flatten Array in JS</button>
+            <button class="imagine-btn" data-q="Write a SQL query to find the top 5 highest paid employees"><i class="fa-solid fa-database"></i> SQL Top 5 Query</button>
+            <button class="imagine-btn" data-q="Create a simple REST API design for a todo app"><i class="fa-solid fa-plug"></i> REST API Design</button>
+            <button class="imagine-btn" data-q="Write a React component for a responsive navbar"><i class="fa-brands fa-react"></i> React Navbar</button>
+            <button class="imagine-btn" data-q="Explain Big O notation with real code examples"><i class="fa-solid fa-chart-line"></i> Big O Examples</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LABS PANEL ── -->
+      <div class="panel" id="panel-labs">
+        <div class="inner-panel">
+          <div class="panel-header"><i class="fa-solid fa-flask"></i><h2>Labs</h2><p>Practice problems and quick challenges</p></div>
+          <div class="labs-grid">
+            <div class="lab-card" data-q="Give me a LeetCode-style easy array problem with full solution in Python"><div class="lab-badge easy">Easy</div><i class="fa-solid fa-layer-group"></i><h3>Array Challenge</h3><p>Array manipulation problems</p><button class="lab-start-btn">Start <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="lab-card" data-q="Give me a LeetCode-style medium string problem with full solution"><div class="lab-badge medium">Medium</div><i class="fa-solid fa-font"></i><h3>String Problem</h3><p>String parsing and manipulation</p><button class="lab-start-btn">Start <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="lab-card" data-q="Give me a binary tree traversal problem with Python solution"><div class="lab-badge medium">Medium</div><i class="fa-solid fa-diagram-project"></i><h3>Tree Traversal</h3><p>BFS, DFS and tree algorithms</p><button class="lab-start-btn">Start <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="lab-card" data-q="Give me a hard dynamic programming problem with detailed solution"><div class="lab-badge hard">Hard</div><i class="fa-solid fa-bolt"></i><h3>Dynamic Programming</h3><p>Memoization and tabulation</p><button class="lab-start-btn">Start <i class="fa-solid fa-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROFILE PANEL ── -->
+      <div class="panel" id="panel-profile">
+        <div class="inner-panel">
+          <div class="panel-header"><i class="fa-solid fa-user-circle"></i><h2>Profile</h2><p>Manage your account and preferences</p></div>
+
+          <div class="profile-card">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar" id="profileAvatar">W</div>
+              <button class="avatar-change-btn" id="avatarChangeBtn" title="Change color">
+                <i class="fa-solid fa-palette"></i>
+              </button>
+            </div>
+            <div class="profile-info">
+              <h3 id="profileName">User</h3>
+              <p id="profileEmail">user@example.com</p>
+              <span class="profile-role-badge" id="profileRole">CS Student</span>
+            </div>
+          </div>
+
+          <!-- Color picker -->
+          <div class="avatar-colors" id="avatarColors">
+            <button class="color-dot" style="background:#2f81f7" data-color="#2f81f7"></button>
+            <button class="color-dot" style="background:#6e40c9" data-color="#6e40c9"></button>
+            <button class="color-dot" style="background:#3fb950" data-color="#3fb950"></button>
+            <button class="color-dot" style="background:#f85149" data-color="#f85149"></button>
+            <button class="color-dot" style="background:#e3b341" data-color="#e3b341"></button>
+            <button class="color-dot" style="background:#f78166" data-color="#f78166"></button>
+            <button class="color-dot" style="background:#58a6ff" data-color="#58a6ff"></button>
+            <button class="color-dot" style="background:#bc8cff" data-color="#bc8cff"></button>
+          </div>
+
+          <!-- Edit form -->
+          <div class="profile-section-title">Edit Profile</div>
+          <form class="profile-form" id="profileForm">
+            <div class="profile-field">
+              <label>Full Name</label>
+              <input type="text" id="editName" placeholder="Your name" />
+            </div>
+            <div class="profile-field">
+              <label>Role</label>
+              <select id="editRole">
+                <option>CS Student</option>
+                <option>Software Engineer</option>
+                <option>Data Scientist</option>
+                <option>Web Developer</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="profile-field">
+              <label>New Password <span style="opacity:.5;font-size:11px">(leave blank to keep current)</span></label>
+              <input type="password" id="editPassword" placeholder="New password" minlength="6" />
+            </div>
+            <button type="submit" class="profile-save-btn"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+          </form>
+
+          <!-- Stats -->
+          <div class="profile-section-title">Your Stats</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="statChats">0</div><div class="stat-label">Chats</div></div>
+            <div class="stat-card"><div class="stat-num" id="statSaved">0</div><div class="stat-label">Saved</div></div>
+            <div class="stat-card"><div class="stat-num" id="statTasks">0</div><div class="stat-label">Tasks</div></div>
+            <div class="stat-card"><div class="stat-num" id="statDone">0</div><div class="stat-label">Done</div></div>
+          </div>
+
+          <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+        </div>
+      </div>
+
+    </div><!-- end content-wrapper -->
+  </main>
+</div><!-- end appScreen -->
+
+<script src="script.js"></script>
+</body>
 </html>
