@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copilot</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- font awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <main>
+      <nav>
+        <div class="close-sidebar">
+            
+        <h1>Wubet Copilot</h1>
+          <!-- <span></span> -->
+          <!-- <i id="toggle" class="fa-solid fa-table-columns"></i> -->
+        </div>
+        <div class="window">
+          <i class="fa-solid fa-window-minimize"></i>
+          <i class="fa-solid fa-window-maximize"></i>
+          <i class="fa-solid fa-xmark"></i>
+        </div>
+      </nav>
+      
+            <aside>
+  <ul>
+    <li><i class="fa-solid fa-pen-to-square"></i> <a href="" id="show">New Chat</a></li>
+    <li><i class="fa-solid fa-book"></i> <a href="" id="show">Library</a></li>
+    <li><i class="fa-solid fa-list-check"></i> <a href="" id="show">Tasks</a></li>
+    <hr style="padding: 10px; border: none; border-top: 1px solid var(--text);" />
+    <li><i class="fa-solid fa-compass"></i> <a href="" id="show">Discover</a></li>
+    <li><i class="fa-solid fa-image"></i> <a href="" id="show">Imagine</a></li>
+    <li><i class="fa-solid fa-flask"></i> <a href="" id="show">Labs</a></li>
+  </ul>
+</aside>
+        
+      <article>
+  <div class="date">
+    <p>Today</p>
+    <span></span>
+  </div>
+
+  <div class="message-send">
+    <div class="message">
+      <p id="question"></p>
+    </div>
+  </div>
+
+  <div class="response">
+    <p id="answer">
+     
+    </p>
+  </div>
+
+
+  <div class="chat-box">
+    <div class="box">
+      <input type="text" id="text" placeholder="Message Copilot" />
+
+      <div class="icons">
+        <!-- LEFT SIDE -->
+        <div class="left-icons">
+          <!-- PLUS ICON -->
+          <span class="plus">
+            <i class="fa-solid fa-plus"></i>
+          </span>
+
+          <!-- MODE MENU -->
+          
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="send-icon">
+          <!-- MIC / VOICE -->
+          <span class="active">
+            <i class="fa-solid fa-microphone"></i>
+          </span>
+
+          <!-- SEND -->
+          <span >
+            <i id="send" class="fa-solid fa-paper-plane"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

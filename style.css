@@ -1,0 +1,354 @@
+ @import url(https://fonts.googleapis.com/css?family=Outfit:100,200,300,regular,500,600,700,800,900);
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+    list-style: none;
+    scroll-behavior: smooth;
+
+}
+:root{
+    --primary: #080e1d;
+    --secondary: #0c1325;
+    --text: rgb(255, 255, 255);
+}
+
+body{
+    width: 100%;
+    height: 100dvh;
+    background-color: var(--primary);
+    color: aliceblue;
+}
+nav{
+    grid-area: nav;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+}
+.close-sidebar{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.close-sidebar h1{
+    font-size: 22px;
+    font-weight: 400;
+  
+}
+.close-sidebar i{
+    font-size: 18px;
+      margin-left: 80px;
+}
+.window{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    cursor: pointer;
+   
+}
+main{
+    display: grid;
+    grid-template-columns: 250px 1fr; /* sidebar + content */
+    grid-template-rows: 60px 1fr;
+    grid-template-areas:
+        "nav nav"
+        "aside content";
+    height: 100vh;
+}
+
+/* NAV */
+nav{
+    grid-area: nav;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+}
+
+/* SIDEBAR */
+aside{
+    grid-area: aside;
+    padding: 20px;
+}
+
+/* CONTENT (add this if you want main area) */
+        article {
+            grid-area: content;
+            background: var(--secondary);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: 20px 28px 28px 28px;
+        }
+
+        /* Date row */
+        .date {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 8px 0 24px 0;
+        }
+
+        .date p {
+            font-size: 14px;
+            font-weight: 500;
+            color: #9aa9c1;
+            letter-spacing: 0.3px;
+            background: rgba(255,255,255,0.03);
+            padding: 5px 12px;
+            border-radius: 40px;
+        }
+
+        .date span {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+        }
+
+/* SIDEBAR LIST */
+aside ul li{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+aside ul li i{
+    width: 20px;
+}
+
+aside ul li a{
+    text-decoration: none;
+    color: white;
+}
+/* Message bubbles */
+        .message-send {
+            display: flex;
+            justify-content: flex-end;
+            margin: 12px 0 18px 0;
+        }
+
+        .message {
+            background: var(--accent-blue);
+            padding: 12px 20px;
+            border-radius: 26px;
+            max-width: 75%;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .message p {
+            font-size: 16px;
+            font-weight: 450;
+            line-height: 1.4;
+        }
+
+        .response {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 18px 22px;
+            margin: 12px 0 20px 0;
+            border-left: 3px solid var(--accent-blue);
+            max-width: 85%;
+            backdrop-filter: blur(2px);
+        }
+
+        .response p {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        /* ========= CHAT INPUT AREA (copilot style bottom sticky) ========= */
+        .chat-box {
+            position: sticky;
+            bottom: 20px;
+            margin-top: auto;
+            width: 100%;
+            background: var(--surface);
+            border-radius: 48px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(43, 110, 240, 0.2);
+            transition: var(--transition);
+        }
+
+        .box {
+            width: 100%;
+            padding: 8px 20px 12px 24px;
+        }
+
+        .box input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: white;
+            padding: 14px 0 8px 0;
+            outline: none;
+            font-weight: 400;
+        }
+
+        .box input::placeholder {
+            color: #7e8aa8;
+            font-weight: 350;
+        }
+
+        .icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            gap: 12px;
+        }
+
+        .left-icons {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .plus {
+            background: rgba(255, 255, 255, 0.08);
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .plus:hover {
+            background: var(--accent-blue);
+        }
+        .send-icon {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .send-icon span {
+            background: rgba(255, 255, 255, 0.08);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-icon span i {
+            font-size: 18px;
+            color: #cdd9ff;
+        }
+
+        .send-icon span:hover {
+            background: var(--accent-blue);
+            transform: scale(1.02);
+        }
+
+        .send-icon span.active {
+            background: #1e2b3e;
+        }
+
+        /* Responsive touches */
+        @media (max-width: 780px) {
+            main {
+                grid-template-columns: 72px 1fr;
+            }
+            aside ul li a {
+                display: none;
+            }
+            aside ul li i {
+                margin: 0 auto;
+               
+            }
+            aside ul li {
+                justify-content: center;
+                padding: 14px 0;
+            }
+            .sidebar-header h2 {
+                display: none;
+            }
+            .sidebar-header {
+                justify-content: center;
+            }
+            .menu-choose p span {
+                display: none;
+            }
+            .menu-choose p {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 550px) {
+            article {
+                padding: 16px;
+            }
+            .response {
+                max-width: 100%;
+            }
+            .menu-choose {
+                gap: 2px;
+            }
+        }
+
+        /* Micro interactions */
+        i, .plus, .send-icon span, .menu-choose p, .window i {
+            user-select: none;
+        }
+
+        /* chat container spacing */
+        .message-send, .response {
+            animation: fadeSlide 0.25s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scroll inside article */
+        article::-webkit-scrollbar {
+            width: 6px;
+        }
+        article::-webkit-scrollbar-track {
+            background: #0f1422;
+        }
+        article::-webkit-scrollbar-thumb {
+            background: #2b3a60;
+            border-radius: 10px;
+        }
+        .response {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 0;
+    margin: 16px 0 24px 0;
+    border-left: 4px solid #667eea;
+    overflow: visible;
+    width: 100%;
+    display: block;
+    clear: both;
+}
+
