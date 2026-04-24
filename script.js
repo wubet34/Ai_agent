@@ -126,6 +126,31 @@ function loadUserData() {
 
 // Auto-login from session
 window.addEventListener('DOMContentLoaded', () => {
+  // ── Dark / Light mode ──
+  const themeBtn  = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  const savedTheme = localStorage.getItem('wc_theme') || 'dark';
+
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      document.body.classList.add('light');
+      themeIcon.className = 'fa-solid fa-sun';
+      themeBtn?.classList.add('theme-active');
+    } else {
+      document.body.classList.remove('light');
+      themeIcon.className = 'fa-solid fa-moon';
+      themeBtn?.classList.remove('theme-active');
+    }
+    localStorage.setItem('wc_theme', theme);
+  }
+
+  applyTheme(savedTheme);
+
+  themeBtn?.addEventListener('click', () => {
+    const isLight = document.body.classList.contains('light');
+    applyTheme(isLight ? 'dark' : 'light');
+  });
+
   const session = localStorage.getItem('wc_session');
   if (session) {
     const user = getUsers().find(u => u.email === session);
@@ -363,9 +388,6 @@ function showCameraSheet() {
   `;
   sheet.innerHTML = `
     <div style="width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 8px;"></div>
-    <button id="sheetCamera" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-family:inherit;cursor:pointer;">
-      <i class="fa-solid fa-camera" style="color:var(--accent);font-size:20px;width:24px;text-align:center;"></i> Take Photo
-    </button>
     <button id="sheetGallery" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-family:inherit;cursor:pointer;">
       <i class="fa-solid fa-image" style="color:var(--accent);font-size:20px;width:24px;text-align:center;"></i> Choose from Gallery
     </button>
@@ -381,11 +403,6 @@ function showCameraSheet() {
 
   const close = () => { sheet.remove(); backdrop.remove(); };
 
-  document.getElementById('sheetCamera').onclick = () => {
-    // Click FIRST (stays in gesture), then close
-    imgCameraInput.click();
-    close();
-  };
   document.getElementById('sheetGallery').onclick = () => {
     imgFileInput.click();
     close();
