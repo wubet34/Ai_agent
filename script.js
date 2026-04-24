@@ -114,9 +114,8 @@ function loginSuccess(user) {
   renderTasks();
   updateSendBtn();
   setTimeout(() => textInput?.focus(), 100);
-  // Voice greeting
-  const firstName = user.name.split(' ')[0];
-  speakGreeting(`Hey ${firstName}! I'm Wubet, your AI assistant. What can I help you with today?`);
+  // Voice greeting — stored for first user interaction (mobile needs gesture)
+  window._pendingGreeting = `Hey ${user.name.split(' ')[0]}! I'm Wubet, your AI assistant. What can I help you with today?`;
 }
 
 function loadUserData() {
@@ -325,6 +324,7 @@ const cameraUpload  = document.getElementById('cameraUpload');
 const cameraVideo   = document.getElementById('cameraVideo');
 const cameraCanvas  = document.getElementById('cameraCanvas');
 const imgFileInput  = document.getElementById('imgFileInput');
+const imgCameraInput = document.getElementById('imgCameraInput');
 const imgPreviewWrap= document.getElementById('imgPreviewWrap');
 const imgPreview    = document.getElementById('imgPreview');
 const imgRemoveBtn  = document.getElementById('imgRemoveBtn');
@@ -383,14 +383,12 @@ function showCameraSheet() {
 
   document.getElementById('sheetCamera').onclick = () => {
     close();
-    imgFileInput.setAttribute('capture', 'environment');
-    imgFileInput.accept = 'image/*';
-    imgFileInput.click();
+    // Use dedicated camera input (capture="environment" hardcoded in HTML)
+    imgCameraInput.click();
   };
   document.getElementById('sheetGallery').onclick = () => {
     close();
-    imgFileInput.removeAttribute('capture');
-    imgFileInput.accept = 'image/*';
+    // Use gallery input (no capture attribute)
     imgFileInput.click();
   };
   document.getElementById('sheetCancel').onclick = close;
@@ -445,7 +443,7 @@ cameraUpload?.addEventListener('click', () => {
   imgFileInput.click();
 });
 
-// File input change
+// File input change (gallery)
 imgFileInput?.addEventListener('change', e => {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -453,6 +451,16 @@ imgFileInput?.addEventListener('change', e => {
   reader.onload = ev => setAttachedImage(ev.target.result);
   reader.readAsDataURL(file);
   imgFileInput.value = '';
+});
+
+// Camera input change (take photo)
+imgCameraInput?.addEventListener('change', e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => setAttachedImage(ev.target.result);
+  reader.readAsDataURL(file);
+  imgCameraInput.value = '';
 });
 
 function setAttachedImage(dataUrl) {
@@ -646,6 +654,12 @@ async function sendMessage() {
   const question = textInput.value.trim();
   if ((!question && !attachedImage) || isTyping) return;
 
+  // Fire pending voice greeting on first user gesture (mobile-safe)
+  if (window._pendingGreeting) {
+    speakGreeting(window._pendingGreeting);
+    window._pendingGreeting = null;
+  }
+
   isTyping = true;
   const imageToSend = attachedImage;
   const label = question || 'Analyze this image';
@@ -798,33 +812,57 @@ taskInput?.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); 
 
 let isSpeaking = false;
 
-function speakGreeting(text) {
-  if (!window.speechSynthesis) return;
-  // Small delay so page is fully rendered
-  setTimeout(() => {
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = 1.05;
-    utt.pitch = 1.1;
-    utt.volume = 1;
-    // Pick a natural voice if available
+// Wait for voices to be available (async on mobile)
+function getVoices() {
+  return new Promise(resolve => {
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v =>
-      /en.*US|en.*GB/i.test(v.lang) && /david|mark|daniel|alex|fred|james|ryan|guy|male/i.test(v.name)
-    ) || voices.find(v => /en/i.test(v.lang) && v.name.toLowerCase().includes('male'))
-      || voices.find(v => /en/i.test(v.lang) && !/female|zira|samantha|karen|moira|victoria|fiona/i.test(v.name))
-      || voices.find(v => /en/i.test(v.lang))
-      || voices[0];
-    if (preferred) utt.voice = preferred;
-    utt.onstart = () => { isSpeaking = true; updateVoiceBtnState(true); };
-    utt.onend = utt.onerror = () => { isSpeaking = false; updateVoiceBtnState(false); };
-    window.speechSynthesis.speak(utt);
-  }, 800);
+    if (voices.length) { resolve(voices); return; }
+    window.speechSynthesis.onvoiceschanged = () => resolve(window.speechSynthesis.getVoices());
+    // Timeout fallback
+    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 2000);
+  });
+}
+
+function pickMaleVoice(voices) {
+  // Try named male voices first
+  return voices.find(v => /en/i.test(v.lang) && /david|mark|daniel|alex|fred|james|ryan|guy|tom|bruce|ralph/i.test(v.name))
+    // Any English voice that doesn't sound female
+    || voices.find(v => /en/i.test(v.lang) && !/samantha|karen|moira|victoria|fiona|zira|susan|lisa|kate|emily|siri/i.test(v.name))
+    // Any English voice
+    || voices.find(v => /en/i.test(v.lang))
+    || voices[0];
+}
+
+async function speakGreeting(text) {
+  if (!window.speechSynthesis) return;
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel();
+
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.95;
+  utt.pitch = 0.85;  // Lower pitch = more masculine
+  utt.volume = 1;
+
+  const voices = await getVoices();
+  const voice = pickMaleVoice(voices);
+  if (voice) utt.voice = voice;
+
+  utt.onstart = () => { isSpeaking = true; updateVoiceBtnState(true); };
+  utt.onend = () => { isSpeaking = false; updateVoiceBtnState(false); };
+  utt.onerror = () => { isSpeaking = false; updateVoiceBtnState(false); };
+
+  // Mobile Chrome fix: resume if suspended
+  if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+  window.speechSynthesis.speak(utt);
+
+  // Mobile Safari/Chrome workaround: sometimes needs a nudge
+  setTimeout(() => {
+    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+  }, 100);
 }
 
 function speakText(text) {
   if (!window.speechSynthesis) return;
-  // Strip markdown for cleaner speech
   const clean = text
     .replace(/```[\s\S]*?```/g, 'code block')
     .replace(/`[^`]+`/g, '')
@@ -860,8 +898,8 @@ window.readAloud = (btn, id) => {
   speakText(el.dataset.text || '');
 };
 
-// Voices load async on some browsers
-window.speechSynthesis?.addEventListener('voiceschanged', () => {});
+// Pre-load voices on page load
+if (window.speechSynthesis) window.speechSynthesis.getVoices();
 
 // ════════════════════════════════════════
 // TOAST
