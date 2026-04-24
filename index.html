@@ -179,8 +179,11 @@
               </div>
             </div>
 
-            <!-- Hidden file input for image upload -->
-            <input type="file" id="imgFileInput" accept="image/*" capture="environment" style="display:none" />
+            <!-- Camera input: opacity:0 not display:none — iOS Safari requires this -->
+            <input type="file" id="imgFileInput" accept="image/*"
+              style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" />
+            <input type="file" id="imgCameraInput" accept="image/*" capture="environment"
+              style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" />
           </div>
           <p class="disclaimer">Wubet Copilot · Free AI · No key needed · Responses may be inaccurate.</p>
         </div>

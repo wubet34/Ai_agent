@@ -382,14 +382,13 @@ function showCameraSheet() {
   const close = () => { sheet.remove(); backdrop.remove(); };
 
   document.getElementById('sheetCamera').onclick = () => {
-    close();
-    // Use dedicated camera input (capture="environment" hardcoded in HTML)
+    // Click FIRST (stays in gesture), then close
     imgCameraInput.click();
+    close();
   };
   document.getElementById('sheetGallery').onclick = () => {
-    close();
-    // Use gallery input (no capture attribute)
     imgFileInput.click();
+    close();
   };
   document.getElementById('sheetCancel').onclick = close;
   backdrop.onclick = close;
